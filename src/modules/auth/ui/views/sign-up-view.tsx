@@ -1,15 +1,17 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { FaGithub } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { OctagonAlertIcon } from "lucide-react";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import {
   Form,
   FormControl,
@@ -38,9 +40,9 @@ const signUpFormSchema = z
   });
 
 export const SignUpView = () => {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const router = useRouter();
   const signUpForm = useForm<z.infer<typeof signUpFormSchema>>({
     resolver: zodResolver(signUpFormSchema),
     defaultValues: {
@@ -60,6 +62,7 @@ export const SignUpView = () => {
         email: data.email,
         password: data.password,
         name: data.name,
+        callbackURL: "/",
       },
       {
         onSuccess: () => {
@@ -68,7 +71,27 @@ export const SignUpView = () => {
         },
         onError: ({ error }) => {
           setPending(false);
-          router.push("/");
+          setError(error.message);
+        },
+      }
+    );
+  };
+
+  const onSocial = async (provider: "github" | "google") => {
+    setError(null);
+    setPending(true);
+
+    authClient.signIn.social(
+      {
+        provider: provider,
+        callbackURL: "/",
+      },
+      {
+        onSuccess: () => {
+          setPending(false);
+        },
+        onError: ({ error }) => {
+          setPending(false);
         },
       }
     );
@@ -179,11 +202,23 @@ export const SignUpView = () => {
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline" className="w-full">
-                    Google
+                  <Button
+                    variant="outline"
+                    className="w-full hover:cursor-pointer"
+                    onClick={() => {
+                      onSocial("google");
+                    }}
+                  >
+                    <FcGoogle /> Google
                   </Button>
-                  <Button variant="outline" className="w-full">
-                    Github
+                  <Button
+                    variant="outline"
+                    className="w-full hover:cursor-pointer"
+                    onClick={() => {
+                      onSocial("github");
+                    }}
+                  >
+                    <FaGithub /> Github
                   </Button>
                 </div>
                 <div className="text-center text-sm">
