@@ -92,6 +92,7 @@ export const meetings = pgTable("meetings", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   status: meetingStatus("status").notNull().default("UPCOMING"),
