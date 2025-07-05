@@ -17,7 +17,7 @@ interface CommandSelectProps {
     children: ReactNode;
   }>;
   onSelect: (value: string) => void;
-  onSearch: (value: string) => void;
+  onSearch?: (value: string) => void;
   value: string;
   placeholder?: string;
   className?: string;
@@ -35,6 +35,11 @@ export const CommandSelect = ({
 }: CommandSelectProps) => {
   const [open, setOpen] = useState(false);
   const selectedOption = options.find((option) => option.value === value);
+
+  const handleOpenChange = (open: boolean) => {
+    onSearch?.("");
+    setOpen(open);
+  };
 
   return (
     <>
