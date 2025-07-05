@@ -14,6 +14,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useConfirm } from "../../hooks/use-confirm";
 import { UpdateMeetingDialog } from "../../components/update-meeting-dialog";
+import { UpcomingState } from "../../components/upcoming-state";
+import { ActiveState } from "../../components/active-state";
+import { CancelledState } from "../../components/cancelled-state";
+import { ProcessingState } from "../../components/processing-state";
 
 interface MeetingIdViewProps {
   meetingId: string;
@@ -58,6 +62,13 @@ const MeetingIdView = ({ meetingId }: MeetingIdViewProps) => {
 
     await removeMeeting.mutateAsync({ id: meetingId });
   };
+
+  const isActiveMeeting = data.status === "ACTIVE";
+  const isCompleted = data.status === "COMPLETED";
+  const isCancelled = data.status === "CANCELLED";
+  const isUpcoming = data.status === "UPCOMING";
+  const isProcessing = data.status === "PROCESSING";
+
   return (
     <>
       <RemoveMeetingConfirmationDialog />
@@ -73,7 +84,25 @@ const MeetingIdView = ({ meetingId }: MeetingIdViewProps) => {
           onEdit={() => setUpdateMeetingDialogOpen(true)}
           onRemove={handleRemoveMeeting}
         />
-        MeetingIdView
+        {isCancelled && <CancelledState />}
+        {isCompleted && (
+          <div className="bg-white rounded-lg border">
+            <div className="px-4 py-5 gap-y-5 flex flex-col col-span-5">
+              <div className="flex flex-col gap-y-2">
+                <h3 className="text-lg font-medium">Meeting Completed</h3>
+              </div>
+            </div>
+          </div>
+        )}
+        {isUpcoming && (
+          <UpcomingState
+            meetingId={meetingId}
+            onCancelMeeting={() => {}}
+            isCancelling={false}
+          />
+        )}
+        {isProcessing && <ProcessingState />}
+        {isActiveMeeting && <ActiveState meetingId={meetingId} />}
       </div>
     </>
   );
