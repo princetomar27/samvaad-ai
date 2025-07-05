@@ -6,13 +6,20 @@ import {
   MeetingsViewLoading,
 } from "@/modules/meetings/ui/views/meetings-view";
 import { getQueryClient, trpc } from "@/trpc/server";
-import { HydrationBoundary } from "@tanstack/react-query";
+import { meetingsLoadSearchParams } from "@/modules/meetings/params";
+import { SearchParams } from "nuqs/server";
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import React, { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
-const MeetingsPage = async () => {
+interface MeetingPageProps {
+  searchParams: Promise<SearchParams>;
+}
+
+const MeetingsPage = async ({ searchParams }: MeetingPageProps) => {
+  const filterParams = await meetingsLoadSearchParams(searchParams);
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -22,12 +29,16 @@ const MeetingsPage = async () => {
 
   const queryClient = getQueryClient();
 
-  void queryClient.prefetchQuery(trpc.meetings.getMany.queryOptions({}));
+  void queryClient.prefetchQuery(
+    trpc.meetings.getMany.queryOptions({
+      ...filterParams,
+    })
+  );
 
   return (
     <>
       <MeetingsListHeader />
-      <HydrationBoundary>
+      <HydrationBoundary state={dehydrate(queryClient)}>
         <Suspense fallback={<MeetingsViewLoading />}>
           <ErrorBoundary fallback={<MeetingsViewError />}>
             <MeetingsView />
