@@ -11,12 +11,22 @@ interface IProps {
 export const CallUI = ({ meetingName }: IProps) => {
   const call = useCall();
   const [show, setShow] = useState<"lobby" | "call" | "ended">("lobby");
+  const [isJoining, setIsJoining] = useState(false);
 
   const handleJoin = async () => {
-    if (!call) return;
-    await call.join();
-    setShow("call");
+    if (!call || isJoining) return;
+
+    try {
+      setIsJoining(true);
+      await call.join();
+      setShow("call");
+    } catch (error) {
+      console.error("Failed to join call:", error);
+    } finally {
+      setIsJoining(false);
+    }
   };
+
   const handleLeave = async () => {
     if (!call) return;
     await call.endCall();
