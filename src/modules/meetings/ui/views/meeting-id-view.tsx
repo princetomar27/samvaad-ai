@@ -18,6 +18,7 @@ import { UpcomingState } from "../../components/upcoming-state";
 import { ActiveState } from "../../components/active-state";
 import { CancelledState } from "../../components/cancelled-state";
 import { ProcessingState } from "../../components/processing-state";
+import { CompletedState } from "../../components/completed-state";
 
 interface MeetingIdViewProps {
   meetingId: string;
@@ -85,15 +86,7 @@ const MeetingIdView = ({ meetingId }: MeetingIdViewProps) => {
           onRemove={handleRemoveMeeting}
         />
         {isCancelled && <CancelledState />}
-        {isCompleted && (
-          <div className="bg-white rounded-lg border">
-            <div className="px-4 py-5 gap-y-5 flex flex-col col-span-5">
-              <div className="flex flex-col gap-y-2">
-                <h3 className="text-lg font-medium">Meeting Completed</h3>
-              </div>
-            </div>
-          </div>
-        )}
+        {isCompleted && <CompletedState data={data} />}
         {isUpcoming && (
           <UpcomingState
             meetingId={meetingId}
