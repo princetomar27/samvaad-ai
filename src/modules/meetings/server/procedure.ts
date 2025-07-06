@@ -18,20 +18,20 @@ import { generateAvatarURI } from "@/lib/avatar";
 export const meetingsRouter = createTRPCRouter({
   generateToken: protectedProcedure.mutation(async ({ ctx }) => {
     await streamVideo.upsertUsers([
-      // Current logged in user is the owner of the meeting
       {
         id: ctx.auth.user.id,
         name: ctx.auth.user.name,
         role: "admin",
         image:
           ctx.auth.user.image ??
-          generateAvatarURI({ seed: ctx.auth.user.name, variant: "initials" }),
+          generateAvatarURI({
+            seed: ctx.auth.user.name,
+            variant: "initials",
+          }),
       },
     ]);
-
-    const expirationTime = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
+    const expirationTime = Math.floor(Date.now() / 1000) + 3600;
     const issuedAt = Math.floor(Date.now() / 1000) - 60;
-
     const token = streamVideo.generateUserToken({
       user_id: ctx.auth.user.id,
       exp: expirationTime,
@@ -40,7 +40,6 @@ export const meetingsRouter = createTRPCRouter({
 
     return token;
   }),
-
   // get one meeting
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
@@ -62,6 +61,22 @@ export const meetingsRouter = createTRPCRouter({
           code: "NOT_FOUND",
           message: "Meeting not found",
         });
+      }
+
+      // Ensure the Stream Video call exists
+      try {
+        const call = streamVideo.video.call("default", existingMeeting.id);
+        await call.getOrCreate({
+          data: {
+            created_by_id: ctx.auth.user.id,
+            custom: {
+              meetingId: existingMeeting.id,
+              meetingName: existingMeeting.name,
+            },
+          },
+        });
+      } catch (error) {
+        console.error("Failed to create/get Stream Video call:", error);
       }
 
       return existingMeeting;
