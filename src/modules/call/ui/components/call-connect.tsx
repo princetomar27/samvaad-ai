@@ -38,10 +38,12 @@ export const CallConnect = ({
   }, [generateToken]);
 
   const [client, setClient] = useState<StreamVideoClient>();
+  const [call, setCall] = useState<Call>();
 
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_STREAM_VIDEO_API_KEY;
     if (!apiKey) return;
+
     const _client = new StreamVideoClient({
       apiKey,
       user: {
@@ -60,10 +62,9 @@ export const CallConnect = ({
     };
   }, [tokenProvider, userId, userImage, userName]);
 
-  const [call, setCall] = useState<Call>();
-
   useEffect(() => {
     if (!client) return;
+
     const _call = client.call("default", meetingId);
     _call.camera.disable();
     _call.microphone.disable();
@@ -72,15 +73,14 @@ export const CallConnect = ({
     return () => {
       if (_call.state.callingState !== CallingState.LEFT) {
         _call.leave();
-        _call.endCall();
-        setCall(undefined);
       }
+      setCall(undefined);
     };
   }, [client, meetingId]);
 
   if (!call || !client) {
     return (
-      <div className="flex h-screen items-center justify-center ng-radial from-sidebar-accent to-sidebar">
+      <div className="flex h-screen items-center justify-center bg-radial from-sidebar-accent to-sidebar">
         <LoaderIcon className="size-6 animate-spin text-white" />
       </div>
     );
