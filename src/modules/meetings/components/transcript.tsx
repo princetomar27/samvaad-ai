@@ -1,3 +1,4 @@
+import { LoadingState } from "@/components/loading-state";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,6 +26,15 @@ export const Transcript = ({ meetingId }: TranscriptProps) => {
   const filteredData = (data ?? []).filter((item) =>
     item.text.toString().toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (!data) {
+    return (
+      <LoadingState
+        title="Loading transcript"
+        description="Please wait while we load the transcript"
+      />
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg border px-4 py-5 flex flex-col gap-y-4 w-full">

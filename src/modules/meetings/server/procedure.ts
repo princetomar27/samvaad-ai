@@ -25,6 +25,7 @@ import { MeetingStatus, StreamTranscriptItem } from "../types";
 import { streamVideo } from "@/lib/stream-video";
 import { generateAvatarURI } from "@/lib/avatar";
 import { name } from "@stream-io/video-react-sdk";
+import { streamChat } from "@/lib/stream-chat";
 
 export const meetingsRouter = createTRPCRouter({
   getTranscript: protectedProcedure
@@ -120,6 +121,17 @@ export const meetingsRouter = createTRPCRouter({
 
       return transcriptWithSpeakers;
     }),
+
+  generateChatToken: protectedProcedure.mutation(async ({ ctx }) => {
+    const token = streamChat.createToken(ctx.auth.user.id);
+    await streamChat.upsertUser({
+      id: ctx.auth.user.id,
+      role: "admin",
+    });
+
+    return token;
+  }),
+
   generateToken: protectedProcedure.mutation(async ({ ctx }) => {
     await streamVideo.upsertUsers([
       {
