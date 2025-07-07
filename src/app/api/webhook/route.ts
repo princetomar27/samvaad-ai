@@ -3,16 +3,24 @@ import { agents, meetings } from "@/db/schema";
 import { ingest } from "@/inngest/client";
 import { streamVideo } from "@/lib/stream-video";
 import {
+  MessageNewEvent,
   CallEndedEvent,
   CallRecordingReadyEvent,
   CallSessionEndedEvent,
   CallSessionParticipantLeftEvent,
   CallTranscriptionReadyEvent,
 } from "@stream-io/node-sdk";
-import { CallSessionStartedEvent } from "@stream-io/video-react-sdk";
-import { error } from "console";
+import { OpenAI } from "openai";
+import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
 import { and, eq, not } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { MeetingStatus } from "@/modules/meetings/types";
+import { streamChat } from "@/lib/stream-chat";
+import { generateAvatarURI } from "@/lib/avatar";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPEN_AI_API_KEY!,
+});
 
 function verifySignatureWithSDK(body: string, signature: string): boolean {
   return streamVideo.verifyWebhook(body, signature);
@@ -189,6 +197,111 @@ export async function POST(request: NextRequest) {
         recordingUrl: event.call_recording.url,
       })
       .where(eq(meetings.id, meetingId));
+  } else if (eventType === "message.new") {
+    const event = payload as MessageNewEvent;
+    const userId = event.user?.id;
+    const channelId = event.channel_id;
+    const text = event.message?.text;
+
+    if (!userId || !channelId || !text) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    const [existingMeeting] = await db
+      .select()
+      .from(meetings)
+      .where(
+        and(
+          eq(meetings.id, channelId),
+          eq(meetings.status, MeetingStatus.COMPLETED)
+        )
+      );
+
+    if (!existingMeeting) {
+      return NextResponse.json({ error: "Meeting not found" }, { status: 404 });
+    }
+
+    const [existingAgent] = await db
+      .select()
+      .from(agents)
+      .where(eq(agents.id, existingMeeting.agentId));
+
+    if (!existingAgent) {
+      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    }
+
+    // Check if the message sent is by the user and not by the agent
+    if (userId !== existingAgent.id) {
+      const instructions = `
+      You are an AI assistant helping the user revisit a recently completed meeting.
+      Below is a summary of the meeting, generated from the transcript:
+      ${existingMeeting.summary}
+      The following are your original instructions from the live meeting assistant. Please continue to follow these behavioral guidelines as you assist the user:
+      ${existingAgent.instructions}
+      The user may ask questions about the meeting, request clarifications, or ask for follow-up actions.
+      Always base your responses on the meeting summary above.
+      You also have access to the recent conversation history between you and the user. Use the context of previous messages to provide relevant, coherent, and helpful responses. If the user's question refers to something discussed earlier, make sure to take that into account and maintain continuity in the conversation.
+      If the summary does not contain enough information to answer a question, politely let the user know.
+      Be concise, helpful, and focus on providing accurate information from the meeting and the ongoing conversation.
+      `;
+
+      const messageChannel = streamChat.channel("messaging", channelId);
+      await messageChannel.watch();
+
+      // Get the last 5 messages from the channel
+      const previous5Messages = await messageChannel.state.messages
+        .slice(-5)
+        .filter((msg) => msg.text && msg.text.trim() !== "")
+        .map<ChatCompletionMessageParam>((message: any) => ({
+          role: message.user.id === existingAgent.id ? "assistant" : "user",
+          content: message.text || "",
+        }));
+
+      // Generate a response using OpenAI
+      const gptResponse = await openai.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: instructions,
+          },
+          ...previous5Messages,
+          { role: "user", content: text },
+        ],
+        model: "gpt-4o-mini",
+      });
+
+      const gptResponseText = gptResponse.choices[0].message.content;
+      if (!gptResponseText) {
+        return NextResponse.json(
+          { error: "Failed to generate response" },
+          { status: 500 }
+        );
+      }
+
+      const avatarURI = generateAvatarURI({
+        seed: existingAgent.name,
+        variant: "bottsNeutral",
+      });
+
+      streamChat.upsertUser({
+        id: existingAgent.id,
+        name: existingAgent.name,
+        image: avatarURI,
+      });
+
+      // Send the response to the channel
+      await messageChannel.sendMessage({
+        text: gptResponseText,
+        user: {
+          id: existingAgent.id,
+          name: existingAgent.name,
+          image: avatarURI,
+        },
+      });
+    }
   }
 
   return NextResponse.json({
