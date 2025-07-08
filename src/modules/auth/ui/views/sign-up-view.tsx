@@ -92,6 +92,7 @@ export const SignUpView = () => {
         },
         onError: ({ error }) => {
           setPending(false);
+          setError(error.message);
         },
       }
     );

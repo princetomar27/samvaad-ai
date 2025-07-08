@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { PlusIcon, XCircleIcon } from "lucide-react";
 import { useState } from "react";
-import { DEFAULT_PAGE } from "@/constants";
 import { NewMeetingDialog } from "./new-meeting-dialog";
 import { MeetingSearchFilter } from "./meeting-search-filter";
 import { StatusFilter } from "./status-filters";

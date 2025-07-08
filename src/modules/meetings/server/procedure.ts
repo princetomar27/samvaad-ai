@@ -28,7 +28,6 @@ import { meetingsInsertSchema, meetingsUpdateSchema } from "../schema";
 import { MeetingStatus, StreamTranscriptItem } from "../types";
 import { streamVideo } from "@/lib/stream-video";
 import { generateAvatarURI } from "@/lib/avatar";
-import { name } from "@stream-io/video-react-sdk";
 import { streamChat } from "@/lib/stream-chat";
 
 export const meetingsRouter = createTRPCRouter({
@@ -65,7 +64,7 @@ export const meetingsRouter = createTRPCRouter({
         });
 
       const speakerIds = [
-        ...new Set(transcript.map((item: any) => item.speaker_id)),
+        ...new Set(transcript.map((item) => item.speaker_id)),
       ];
 
       const userSpeakers = await db

@@ -3,19 +3,17 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
-} from "./ui/drawer";
+} from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import React from "react";
 

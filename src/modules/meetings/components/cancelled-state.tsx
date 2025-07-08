@@ -1,7 +1,4 @@
 import { EmptyState } from "@/components/empty-state";
-import { Button } from "@/components/ui/button";
-import { VideoIcon } from "lucide-react";
-import Link from "next/link";
 
 export const CancelledState = () => {
   return (
@@ -9,7 +6,7 @@ export const CancelledState = () => {
       <EmptyState
         image="/cancelled.svg"
         title="Meeting Cancelled"
-        description="This meeting has been cancelled."
+        description="This meeting has been cancelled. You can create a new meeting to continue."
       />
     </div>
   );

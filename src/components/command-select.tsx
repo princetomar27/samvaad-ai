@@ -31,15 +31,9 @@ export const CommandSelect = ({
   value,
   placeholder = "Select an option",
   className,
-  isSearchable,
 }: CommandSelectProps) => {
   const [open, setOpen] = useState(false);
   const selectedOption = options.find((option) => option.value === value);
-
-  const handleOpenChange = (open: boolean) => {
-    onSearch?.("");
-    setOpen(open);
-  };
 
   return (
     <>

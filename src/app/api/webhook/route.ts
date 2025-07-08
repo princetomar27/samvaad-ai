@@ -255,8 +255,8 @@ export async function POST(request: NextRequest) {
       const previous5Messages = await messageChannel.state.messages
         .slice(-5)
         .filter((msg) => msg.text && msg.text.trim() !== "")
-        .map<ChatCompletionMessageParam>((message: any) => ({
-          role: message.user.id === existingAgent.id ? "assistant" : "user",
+        .map<ChatCompletionMessageParam>((message) => ({
+          role: message.user?.id === existingAgent.id ? "assistant" : "user",
           content: message.text || "",
         }));
 
