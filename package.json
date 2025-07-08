@@ -11,7 +11,7 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "dev:webhook": "ngrok http --url=cow-sweeping-horse.ngrok-free.app 3000"
+    "dev:webhook": "ngrok http --url=https://samvaad-ai-gamma.vercel.app/ 3000"
   },
   "dependencies": {
     "@dicebear/collection": "^9.2.3",
