@@ -34,8 +34,6 @@ const MeetingsIdPage = async ({ params }: MeetingIdPageProps) => {
     })
   );
 
-  // TODO: prefetch the transcript for the meeting
-
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <Suspense fallback={<MeetingIdViewLoading />}>
