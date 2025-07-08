@@ -23,7 +23,7 @@ export const premiumRouter = createTRPCRouter({
     return product;
   }),
 
-  getProducts: protectedProcedure.query(async ({ ctx }) => {
+  getProducts: protectedProcedure.query(async () => {
     const products = await polarClient.products.list({
       isArchived: false,
       isRecurring: true,

@@ -1,16 +1,19 @@
-import { Card } from "@/components/ui/card";
-import React, { Children } from "react";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
-interface Props {
+export default async function AuthLayout({
+  children,
+}: {
   children: React.ReactNode;
+}) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (session) {
+    redirect("/");
+  }
+
+  return <>{children}</>;
 }
-
-const layout = ({ children }: Props) => {
-  return (
-    <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm md:max-w-3xl">{children}</div>
-    </div>
-  );
-};
-
-export default layout;

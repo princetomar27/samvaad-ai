@@ -30,7 +30,7 @@ const DashboardUserButton = () => {
   const isMobile = useIsMobile();
   const { data, isPending } = authClient.useSession();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
@@ -93,7 +93,7 @@ const DashboardUserButton = () => {
             <Button
               variant="outline"
               onClick={() => {
-                handleLogout;
+                handleLogout();
               }}
             >
               <LogOutIcon className="size-4 text-black" />
